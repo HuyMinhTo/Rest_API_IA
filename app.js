@@ -1,4 +1,3 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -11,17 +10,12 @@ var performanceRouter = require('./routes/performance'); // Performance-Route im
 
 var app = express();
 
-// View Engine Setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Routen einbinden
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api/salesman', salesmanRouter); // Route /api/salesman einbinden

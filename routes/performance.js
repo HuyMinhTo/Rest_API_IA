@@ -3,8 +3,8 @@ var router = express.Router();
 
 // Hardcodierte Beispiel-Daten für Leistungsbewertungen
 let performanceRecords = [
-    { id: 1, salesmanId: 1, rating: 4.5, feedback: "Sehr gute Leistung" },
-    { id: 2, salesmanId: 2, rating: 3.8, feedback: "Gute Leistung" }
+    { id: 1, salesmanId: 1, rating: 4.0, feedback: "Sehr gute Leistung" },
+    { id: 2, salesmanId: 2, rating: 3.5, feedback: "Gute Leistung" }
 ];
 
 // GET: Alle Leistungsbewertungen abrufen
