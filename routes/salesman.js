@@ -1,7 +1,9 @@
 var express = require('express');
 var router = express.Router();
+const axios = require('axios');
+const calculateBonus = require('../utils/bonusCalculator'); // Bonusberechnungsmodul importieren
 
-// Hardcodierte Beispiel-Daten für Verkäufer
+// Beispiel-Daten für Verkäufer
 let salesmen = [
     { id: 1, name: "Huy", age: 22, salesAmount: 120, importanceLevel: 4 },
     { id: 2, name: "Shkodran", age: 21, salesAmount: 80, importanceLevel: 2 }
@@ -12,6 +14,17 @@ router.get('/', (req, res) => {
     res.json(salesmen);
 });
 
+// GET: Einzelnen Verkäufer abrufen
+router.get('/:id', (req, res) => {
+    const salesmanId = parseInt(req.params.id);
+    const salesman = salesmen.find(s => s.id === salesmanId);
+
+    if (!salesman) {
+        return res.status(404).send('Verkäufer nicht gefunden');
+    }
+    res.json(salesman);
+});
+
 // POST: Neuen Verkäufer hinzufügen
 router.post('/', (req, res) => {
     const newSalesman = req.body;
@@ -20,21 +33,56 @@ router.post('/', (req, res) => {
     res.status(201).json(newSalesman);
 });
 
-module.exports = router;
-
-
-const calculateBonus = require('../utils/bonusCalculator'); // Bonusberechnungsmodul importieren
-
-// GET: Bonus für einen Verkäufer berechnen
-router.get('/:id/bonus', (req, res) => {
+// PUT: Vorhandenen Verkäufer aktualisieren
+router.put('/:id', (req, res) => {
     const salesmanId = parseInt(req.params.id);
     const salesman = salesmen.find(s => s.id === salesmanId);
-    const performance = performanceRecords.find(p => p.salesmanId === salesmanId);
 
-    if (!salesman || !performance) {
-        return res.status(404).send('Daten für den Verkäufer oder die Leistung nicht gefunden');
+    if (!salesman) {
+        return res.status(404).send('Verkäufer nicht gefunden');
     }
 
-    const bonus = calculateBonus(salesman.salesAmount, salesman.importanceLevel, performance.rating);
-    res.json({ id: salesman.id, name: salesman.name, bonus });
+    // Verkäuferdaten aktualisieren
+    Object.assign(salesman, req.body);
+    res.json(salesman);
 });
+
+// DELETE: Verkäufer löschen
+router.delete('/:id', (req, res) => {
+    const salesmanId = parseInt(req.params.id);
+    const index = salesmen.findIndex(s => s.id === salesmanId);
+
+    if (index === -1) {
+        return res.status(404).send('Verkäufer nicht gefunden');
+    }
+
+    // Verkäufer entfernen
+    const deletedSalesman = salesmen.splice(index, 1);
+    res.json(deletedSalesman[0]);
+});
+
+// GET: Bonus für einen Verkäufer berechnen
+router.get('/:id/bonus', async (req, res) => {
+    const salesmanId = parseInt(req.params.id);
+    const salesman = salesmen.find(s => s.id === salesmanId);
+
+    if (!salesman) {
+        return res.status(404).send('Verkäufer nicht gefunden');
+    }
+
+    try {
+        const response = await axios.get(`http://localhost:3000/api/performance`);
+        const performance = response.data.find(p => p.salesmanId === salesmanId);
+
+        if (!performance) {
+            return res.status(404).send('Leistungsbewertung für den Verkäufer nicht gefunden');
+        }
+
+        const bonus = calculateBonus(salesman.salesAmount, salesman.importanceLevel, performance.rating);
+        res.json({ id: salesman.id, name: salesman.name, bonus });
+    } catch (error) {
+        res.status(500).send('Fehler bei der Berechnung des Bonus');
+    }
+});
+
+module.exports = router;

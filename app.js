@@ -21,17 +21,12 @@ app.use('/users', usersRouter);
 app.use('/api/salesman', salesmanRouter); // Route /api/salesman einbinden
 app.use('/api/performance', performanceRouter); // Route /api/performance einbinden
 
-// 404-Fehler fangen und an den Fehlerhandler weiterleiten
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
 // Fehlerhandler
 app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
   res.status(err.status || 500);
-  res.render('error');
+  res.json({ message: 'Error', error: err.message });
 });
 
 module.exports = app;
